@@ -1,0 +1,25 @@
+services:
+  agent-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: agent-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./workspace:/workspace
+      - ./logs:/logs
+      - agent_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - agentnet
+
+volumes:
+  agent_data:
+
+networks:
+  agentnet:
+    driver: bridge
