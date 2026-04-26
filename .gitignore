@@ -1,0 +1,14 @@
+.env
+__pycache__/
+*.py[cod]
+*.sqlite
+*.db
+.data/
+logs/*
+!logs/.gitkeep
+workspace/*
+!workspace/.gitkeep
+.DS_Store
+.pytest_cache/
+.coverage
+.venv/
