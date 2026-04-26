@@ -216,3 +216,18 @@ def fail_job(job_id: str, result: Any) -> None:
             """,
             ("failed", now, json.dumps(result, default=str), job_id),
         )
+
+
+def update_job_enabled(job_id: str, enabled: bool) -> Optional[dict[str, Any]]:
+    init_db()
+    now = int(time.time())
+    with connect() as conn:
+        conn.execute(
+            """
+            UPDATE jobs
+            SET enabled = ?, status = ?, updated_ts = ?, next_run_ts = ?
+            WHERE id = ?
+            """,
+            (1 if enabled else 0, "queued" if enabled else "disabled", now, now if enabled else None, job_id),
+        )
+    return get_job(job_id)
