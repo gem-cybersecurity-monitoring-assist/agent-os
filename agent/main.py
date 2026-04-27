@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import time
 import uuid
 from typing import Optional
@@ -16,6 +17,10 @@ from schemas import AgentRunRequest, JobCreateRequest, JobUpdateRequest, ToolRun
 app = FastAPI(title="Agent OS", version="1.0.0")
 
 
+def _is_serverless_runtime() -> bool:
+    return "vercel" in settings.agent_mode.lower() or bool(os.getenv("VERCEL"))
+
+
 def require_api_token(authorization: Optional[str] = Header(default=None)) -> None:
     if not settings.api_token:
         return
@@ -27,12 +32,14 @@ def require_api_token(authorization: Optional[str] = Header(default=None)) -> No
 @app.on_event("startup")
 def startup() -> None:
     init_db()
-    start_job_runner()
+    if not _is_serverless_runtime():
+        start_job_runner()
 
 
 @app.on_event("shutdown")
 def shutdown() -> None:
-    stop_job_runner()
+    if not _is_serverless_runtime():
+        stop_job_runner()
 
 
 @app.get("/health")
@@ -42,6 +49,7 @@ def health() -> dict:
         "service": settings.agent_name,
         "mode": settings.agent_mode,
         "model": settings.openai_model,
+        "serverless": _is_serverless_runtime(),
         "time": int(time.time()),
     }
 
@@ -118,7 +126,6 @@ def update_agent_job(job_id: str, req: JobUpdateRequest) -> dict:
     if req.enabled is None:
         raise HTTPException(status_code=400, detail="Only enabled updates are supported in MVP")
 
-    # Local import keeps startup resilient if the audit module is extended later.
     from audit import update_job_enabled
 
     job = update_job_enabled(job_id, req.enabled)
