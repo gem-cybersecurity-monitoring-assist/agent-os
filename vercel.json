@@ -1,7 +1,7 @@
 {
   "version": 2,
   "framework": null,
-  "buildCommand": "python -m py_compile agent/*.py api/index.py",
+  "buildCommand": "PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1 python -m py_compile agent/*.py api/index.py",
   "rewrites": [
     {
       "source": "/(.*)",
